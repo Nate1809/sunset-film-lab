@@ -1,0 +1,12 @@
+# Vercel
+.vercel
+
+# Local tooling / editor
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (none used, but just in case)
+node_modules/

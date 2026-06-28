@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>夕景現像所 · SUNSET FILM LAB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Dots&family=IBM+Plex+Mono:wght@400;500;600&family=Zen+Kaku+Gothic+New:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#140f0c;
+    --bg2:#1d1610;
+    --panel:#221a13;
+    --panel-edge:#3a2c1f;
+    --paper:#ece0cf;
+    --paper-dim:#c9b89f;
+    --ink:#f4ead9;
+    --ink-dim:#a8957c;
+    --coral:#ff6b53;
+    --gold:#ffb347;
+    --teal:#46c8b8;
+    --magenta:#ff5d9e;
+    --line:#43331f;
+    --shadow:0 18px 40px -18px rgba(0,0,0,.8);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{background:var(--bg)}
+  body{
+    font-family:"IBM Plex Mono",ui-monospace,monospace;
+    color:var(--ink);
+    background:transparent;
+    min-height:100vh;
+    position:relative;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  /* fixed atmospheric backdrop — covers the viewport at any scroll position */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:
+      radial-gradient(120% 80% at 80% -10%, rgba(255,93,158,.10), transparent 55%),
+      radial-gradient(120% 90% at 0% 110%, rgba(70,200,184,.10), transparent 55%),
+      linear-gradient(170deg, var(--bg) 0%, var(--bg2) 100%);
+  }
+  /* film grain over the whole UI */
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;
+    opacity:.05;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ===== masthead ===== */
+  header{
+    padding:30px clamp(18px,4vw,54px) 22px;
+    border-bottom:1px solid var(--line);
+    position:relative;
+  }
+  .mast-row{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap}
+  .brand{display:flex;flex-direction:column;gap:6px}
+  .kana{font-family:"Zen Kaku Gothic New",sans-serif;font-weight:700;color:var(--gold);
+    letter-spacing:.22em;font-size:13px;opacity:.85}
+  h1{
+    font-family:"Zen Dots",sans-serif;font-weight:400;
+    font-size:clamp(26px,5vw,46px);line-height:.95;letter-spacing:.01em;
+    background:linear-gradient(95deg,var(--gold),var(--coral) 45%,var(--magenta));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 30px rgba(255,107,83,.18);
+  }
+  .tag{color:var(--ink-dim);font-size:12px;letter-spacing:.16em;text-transform:uppercase;margin-top:2px}
+  .badge{
+    font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--bg);
+    background:linear-gradient(95deg,var(--gold),var(--coral));
+    padding:7px 12px;border-radius:2px;font-weight:600;white-space:nowrap;
+    box-shadow:0 0 0 1px rgba(255,179,71,.4), 0 8px 22px -10px rgba(255,107,83,.7);
+  }
+  .sunbar{height:5px;margin-top:18px;border-radius:3px;
+    background:linear-gradient(90deg,var(--magenta),var(--coral) 35%,var(--gold) 70%,var(--teal));
+    box-shadow:0 0 22px -2px rgba(255,107,83,.5)}
+
+  /* ===== layout ===== */
+  main{
+    display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,.9fr);
+    gap:clamp(16px,2.4vw,30px);
+    padding:clamp(16px,3vw,34px) clamp(18px,4vw,54px) 60px;
+    align-items:start;
+  }
+  @media(max-width:880px){main{grid-template-columns:1fr}}
+
+  /* ===== stage ===== */
+  .stage-wrap{display:flex;flex-direction:column;gap:14px;min-width:0}
+  .stage{
+    position:relative;border-radius:8px;overflow:hidden;
+    border:1px solid var(--panel-edge);
+    background:
+      repeating-linear-gradient(45deg, #0c0907 0 12px, #100b08 12px 24px);
+    box-shadow:var(--shadow);
+    aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;
+  }
+  /* empty / dropzone state */
+  .drop{
+    position:absolute;inset:14px;border:2px dashed var(--line);border-radius:6px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+    text-align:center;color:var(--ink-dim);transition:.2s;padding:24px;cursor:pointer;
+  }
+  .drop.hot{border-color:var(--gold);background:rgba(255,179,71,.06);color:var(--ink)}
+  .drop .big{font-family:"Zen Dots",sans-serif;font-size:clamp(15px,2vw,20px);color:var(--paper);letter-spacing:.02em}
+  .drop .sub{font-size:12px;letter-spacing:.05em;max-width:46ch;line-height:1.7}
+  .drop .ico{font-size:34px;filter:grayscale(.2)}
+  .drop .pill{margin-top:4px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    border:1px solid var(--line);padding:6px 12px;border-radius:30px;color:var(--ink-dim)}
+
+  /* canvas compare */
+  .canvas-stack{position:relative;width:100%;height:100%;display:none}
+  .canvas-stack canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+    image-rendering:auto}
+  #procCanvas{clip-path:inset(0 0 0 var(--split,50%));}
+  .divider{position:absolute;top:0;bottom:0;left:var(--split,50%);width:2px;
+    background:linear-gradient(var(--gold),var(--coral));transform:translateX(-1px);
+    box-shadow:0 0 12px rgba(255,179,71,.6);pointer-events:none}
+  .handle{position:absolute;top:50%;left:var(--split,50%);transform:translate(-50%,-50%);
+    width:38px;height:38px;border-radius:50%;background:var(--paper);color:var(--bg);
+    display:flex;align-items:center;justify-content:center;font-size:14px;cursor:ew-resize;
+    box-shadow:0 4px 14px rgba(0,0,0,.5), 0 0 0 4px rgba(236,224,207,.18);font-weight:600;
+    z-index:5;user-select:none}
+  .stage-lbl{position:absolute;top:10px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+    background:rgba(10,7,5,.6);backdrop-filter:blur(3px);padding:5px 9px;border-radius:3px;color:var(--paper);z-index:4}
+  .stage-lbl.l{left:10px}.stage-lbl.r{right:10px;color:var(--gold)}
+  .developing{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+    background:rgba(12,8,5,.55);z-index:6;color:var(--gold);font-size:11px;letter-spacing:.25em;text-transform:uppercase}
+  .developing.on{display:flex}
+  .developing::before{content:"";width:14px;height:14px;margin-right:10px;border-radius:50%;
+    border:2px solid rgba(255,179,71,.35);border-top-color:var(--gold);animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .stage-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .btn{
+    font-family:inherit;font-size:12px;letter-spacing:.08em;cursor:pointer;
+    border:1px solid var(--panel-edge);background:var(--panel);color:var(--ink);
+    padding:10px 14px;border-radius:5px;transition:.15s;display:inline-flex;gap:8px;align-items:center}
+  .btn:hover{border-color:var(--gold);color:var(--gold);transform:translateY(-1px)}
+  .btn:active{transform:translateY(0)}
+  .btn.ghost{background:transparent}
+  .btn.primary{background:linear-gradient(95deg,var(--gold),var(--coral));color:#1a120b;
+    border:none;font-weight:600;letter-spacing:.1em;box-shadow:0 10px 24px -12px rgba(255,107,83,.8)}
+  .btn.primary:hover{filter:brightness(1.06);color:#1a120b;transform:translateY(-1px)}
+  .btn[disabled]{opacity:.4;cursor:not-allowed;transform:none}
+  .spacer{flex:1}
+  .hint{font-size:11px;color:var(--ink-dim);letter-spacing:.04em}
+
+  /* ===== panel ===== */
+  .panel{
+    background:linear-gradient(180deg,var(--panel),#1a130d);
+    border:1px solid var(--panel-edge);border-radius:8px;box-shadow:var(--shadow);
+    padding:18px;display:flex;flex-direction:column;gap:18px;position:sticky;top:18px}
+  @media(max-width:880px){.panel{position:static}}
+  .sec-h{display:flex;align-items:center;gap:10px;font-size:11px;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--paper-dim)}
+  .sec-h::after{content:"";flex:1;height:1px;background:var(--line)}
+  .sec-h b{font-family:"Zen Kaku Gothic New",sans-serif;color:var(--gold);font-weight:700;letter-spacing:.1em}
+
+  .presets{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .preset{
+    font-family:inherit;cursor:pointer;text-align:left;
+    border:1px solid var(--panel-edge);background:#1c150e;color:var(--ink);
+    padding:9px 11px;border-radius:5px;transition:.15s;line-height:1.3}
+  .preset .pn{font-size:11.5px;letter-spacing:.04em;font-weight:500}
+  .preset .pj{font-size:9px;color:var(--ink-dim);letter-spacing:.18em;text-transform:uppercase;margin-top:3px}
+  .preset:hover{border-color:var(--coral);transform:translateY(-1px)}
+  .preset.active{border-color:var(--gold);background:linear-gradient(180deg,rgba(255,179,71,.16),rgba(255,107,83,.06));
+    box-shadow:inset 0 0 0 1px rgba(255,179,71,.3)}
+  .preset.active .pn{color:var(--gold)}
+
+  .controls{display:flex;flex-direction:column;gap:13px}
+  .ctrl label{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;
+    letter-spacing:.06em;margin-bottom:5px}
+  .ctrl .lab{color:var(--ink)}
+  .ctrl .lab i{font-style:normal;color:var(--gold);font-family:"Zen Kaku Gothic New",sans-serif;margin-right:6px}
+  .ctrl .val{color:var(--ink-dim);font-variant-numeric:tabular-nums;font-size:11px}
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:3px;
+    background:linear-gradient(90deg,var(--coral),var(--gold));cursor:pointer;outline:none}
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+    background:var(--paper);border:2px solid var(--bg);
+    box-shadow:0 0 0 1px var(--gold),0 2px 6px rgba(0,0,0,.5);cursor:ew-resize;transition:.1s}
+  input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15)}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;
+    background:var(--paper);border:2px solid var(--gold);cursor:ew-resize}
+  input[type=range]::-moz-range-track{height:4px;border-radius:3px;background:linear-gradient(90deg,var(--coral),var(--gold))}
+
+  .panel-actions{display:flex;gap:8px}
+  .panel-actions .btn{flex:1;justify-content:center}
+
+  footer{padding:22px clamp(18px,4vw,54px) 40px;color:var(--ink-dim);font-size:11px;
+    letter-spacing:.05em;line-height:1.8;border-top:1px solid var(--line);max-width:80ch}
+  footer b{color:var(--paper-dim);font-weight:500}
+  footer .k{color:var(--gold)}
+  input[type=file]{display:none}
+  ::selection{background:var(--coral);color:#1a120b}
+</style>
+</head>
+<body>
+<header>
+  <div class="mast-row">
+    <div class="brand">
+      <span class="kana">夕景現像所</span>
+      <h1>SUNSET FILM LAB</h1>
+      <span class="tag">city-pop · magazine-scan developer · circa 1982</span>
+    </div>
+    <span class="badge">drop a photo →</span>
+  </div>
+  <div class="sunbar"></div>
+</header>
+
+<main>
+  <!-- LEFT: stage -->
+  <section class="stage-wrap">
+    <div class="stage" id="stage">
+      <div class="drop" id="drop">
+        <div class="ico">🌇</div>
+        <div class="big">Drop a photo to develop</div>
+        <div class="sub">Drag &amp; drop, click to browse, or paste from clipboard. Everything runs locally in your browser — nothing is uploaded.</div>
+        <div class="pill">JPG · PNG · WEBP · HEIC*</div>
+      </div>
+      <div class="canvas-stack" id="stack">
+        <canvas id="baseCanvas"></canvas>
+        <canvas id="procCanvas"></canvas>
+        <span class="stage-lbl l">原 · before</span>
+        <span class="stage-lbl r">現像 · after</span>
+        <div class="divider" id="divider"></div>
+        <div class="handle" id="handle">⇆</div>
+        <div class="developing" id="developing">developing</div>
+      </div>
+    </div>
+    <div class="stage-actions">
+      <button class="btn" id="uploadBtn">📁 Upload</button>
+      <button class="btn ghost" id="sampleBtn">✨ Try a sample</button>
+      <span class="spacer"></span>
+      <span class="hint" id="dims"></span>
+    </div>
+  </section>
+
+  <!-- RIGHT: controls -->
+  <aside class="panel">
+    <div class="sec-h"><b>現像液</b> presets</div>
+    <div class="presets" id="presets"></div>
+
+    <div class="sec-h"><b>調整</b> develop</div>
+    <div class="controls" id="controls"></div>
+
+    <div class="sec-h"><b>仕上げ</b> finish</div>
+    <div class="panel-actions">
+      <button class="btn" id="randomBtn">🎲 Surprise</button>
+      <button class="btn" id="resetBtn">↺ Reset</button>
+    </div>
+    <button class="btn primary" id="downloadBtn" disabled>⬇ Develop &amp; save</button>
+  </aside>
+</main>
+
+<footer>
+  <b>What this is →</b> the look is a <b>stack</b>, not a single filter: warm tungsten white-balance, <span class="k">faded film</span> (lifted blacks + low contrast), split-tone (amber highlights / teal shadows), <span class="k">halation</span> bloom on bright spots, film grain, lens chroma fringing, and — the real tell — <span class="k">authentic JPEG/print compression</span> (re-encoded at low quality so you get genuine 8×8 blocking + color bleed). Tune each layer, drag the slider to compare, save your version.
+</footer>
+
+<input type="file" id="fileInput" accept="image/*">
+
+<script>
+"use strict";
+/* ============================================================
+   SUNSET FILM LAB — single-file analog/magazine-scan developer
+   ============================================================ */
+const $ = s => document.querySelector(s);
+const MAX_PREVIEW = 1100;   // longest side for live preview
+const MAX_EXPORT  = 2400;   // longest side for saved file
+
+/* ---- slider definitions ---- */
+const SLIDERS = [
+  {id:"warmth",     lab:"Warmth",      jp:"温", min:0,   max:100, def:64},
+  {id:"tint",       lab:"Tint",        jp:"色", min:-50, max:50,  def:8},
+  {id:"saturation", lab:"Saturation",  jp:"彩", min:-100,max:100, def:18},
+  {id:"fade",       lab:"Fade",        jp:"褪", min:0,   max:100, def:46},
+  {id:"split",      lab:"Split tone",  jp:"影", min:0,   max:100, def:42},
+  {id:"bloom",      lab:"Halation",    jp:"光", min:0,   max:100, def:34},
+  {id:"chroma",     lab:"Chroma drift",jp:"滲", min:0,   max:100, def:18},
+  {id:"grain",      lab:"Grain",       jp:"粒", min:0,   max:100, def:40},
+  {id:"jpeg",       lab:"Compression", jp:"圧", min:0,   max:100, def:52},
+  {id:"halftone",   lab:"Print screen",jp:"網", min:0,   max:100, def:0},
+  {id:"vignette",   lab:"Vignette",    jp:"暈", min:0,   max:100, def:30},
+];
+
+/* ---- presets (Tatsuro / city-pop nods) ---- */
+const PRESETS = {
+  "FOR YOU":      {jp:"the hero look", v:{warmth:64,tint:8,saturation:18,fade:46,split:42,bloom:34,chroma:18,grain:40,jpeg:52,halftone:0,vignette:30}},
+  "RIDE ON TIME": {jp:"punchy sunset", v:{warmth:72,tint:6,saturation:42,fade:30,split:52,bloom:48,chroma:14,grain:30,jpeg:40,halftone:0,vignette:26}},
+  "SPARKLE":      {jp:"clean & glossy",v:{warmth:58,tint:2,saturation:24,fade:22,split:30,bloom:62,chroma:8, grain:20,jpeg:26,halftone:0,vignette:18}},
+  "PLASTIC LOVE": {jp:"magazine scan", v:{warmth:60,tint:14,saturation:10,fade:56,split:36,bloom:22,chroma:24,grain:60,jpeg:82,halftone:34,vignette:34}},
+  "MIDNIGHT":     {jp:"vhs dusk",      v:{warmth:40,tint:-6,saturation:16,fade:50,split:62,bloom:40,chroma:36,grain:48,jpeg:52,halftone:0,vignette:42}},
+};
+
+let params = {};
+let sourceImg = null;          // HTMLImageElement of original
+let baseWork = null;           // canvas: original at preview size
+let rafPending = false;
+let renderToken = 0;           // cancels stale async renders
+
+/* ---------- build UI ---------- */
+function buildControls(){
+  const c = $("#controls");
+  SLIDERS.forEach(s=>{
+    const wrap = document.createElement("div");
+    wrap.className = "ctrl";
+    wrap.innerHTML = `
+      <label>
+        <span class="lab"><i>${s.jp}</i>${s.lab}</span>
+        <span class="val" id="val_${s.id}"></span>
+      </label>
+      <input type="range" id="rng_${s.id}" min="${s.min}" max="${s.max}" step="1">`;
+    c.appendChild(wrap);
+    const rng = wrap.querySelector("input");
+    rng.addEventListener("input", ()=>{
+      params[s.id] = +rng.value;
+      $("#val_"+s.id).textContent = fmt(s, +rng.value);
+      clearActivePreset();
+      scheduleQuick();
+    });
+    rng.addEventListener("change", ()=> fullRender());
+  });
+}
+function fmt(s,v){
+  if(s.min<0) return (v>0?"+":"")+v;
+  return v+"";
+}
+function syncSliders(){
+  SLIDERS.forEach(s=>{
+    $("#rng_"+s.id).value = params[s.id];
+    $("#val_"+s.id).textContent = fmt(s, params[s.id]);
+  });
+}
+function buildPresets(){
+  const p = $("#presets");
+  Object.entries(PRESETS).forEach(([name,obj])=>{
+    const b = document.createElement("button");
+    b.className="preset";b.dataset.name=name;
+    b.innerHTML = `<div class="pn">${name}</div><div class="pj">${obj.jp}</div>`;
+    b.addEventListener("click", ()=>{
+      params = {...obj.v};
+      syncSliders();
+      setActivePreset(name);
+      fullRender();
+    });
+    p.appendChild(b);
+  });
+}
+function setActivePreset(name){
+  document.querySelectorAll(".preset").forEach(el=>
+    el.classList.toggle("active", el.dataset.name===name));
+}
+function clearActivePreset(){ document.querySelectorAll(".preset").forEach(el=>el.classList.remove("active")); }
+
+/* ---------- math helpers ---------- */
+const clamp = (v,a,b)=> v<a?a:(v>b?b:v);
+function smoothstep(e0,e1,x){ const t=clamp((x-e0)/(e1-e0),0,1); return t*t*(3-2*t); }
+
+/* ---------- core: per-pixel color grade ---------- */
+function gradePass(d, w, h, p){
+  const warm = (p.warmth-50)/50;     // -1..1
+  const tintv = p.tint/50;           // -1..1 (neg=green, pos=magenta)
+  const sat  = p.saturation/100;
+  const fade = p.fade/100;
+  const split= p.split/100;
+  const blackLift = fade*0.16;
+  const whiteDrop = fade*0.06;
+  const span = 1 - blackLift - whiteDrop;
+  for(let i=0;i<d.length;i+=4){
+    let r=d[i]/255, g=d[i+1]/255, b=d[i+2]/255;
+    // white balance (tungsten warmth)
+    r *= 1 + 0.22*warm; g *= 1 + 0.05*warm; b *= 1 - 0.22*warm;
+    // tint
+    g *= 1 - 0.12*tintv; r *= 1 + 0.04*tintv; b *= 1 + 0.04*tintv;
+    // saturation
+    let l = 0.299*r + 0.587*g + 0.114*b;
+    r = l + (r-l)*(1+sat); g = l + (g-l)*(1+sat); b = l + (b-l)*(1+sat);
+    // faded film curve: lift blacks, drop whites -> milky low contrast
+    r = blackLift + r*span; g = blackLift + g*span; b = blackLift + b*span;
+    // split tone: warm highlights, teal shadows
+    l = 0.299*r + 0.587*g + 0.114*b;
+    const hi = smoothstep(0.45,1.0,l);
+    const sh = 1 - smoothstep(0.0,0.55,l);
+    r += split*( hi*0.10 - sh*0.05);
+    g += split*( hi*0.045 + sh*0.015);
+    b += split*(-hi*0.06 + sh*0.11);
+    d[i]   = clamp(r*255,0,255);
+    d[i+1] = clamp(g*255,0,255);
+    d[i+2] = clamp(b*255,0,255);
+  }
+}
+
+/* ---------- chromatic aberration (radial channel shift) ---------- */
+function chromaPass(img, w, h, amt){
+  const src = img.data;
+  const out = new Uint8ClampedArray(src.length);
+  const cx=w/2, cy=h/2, maxd=Math.hypot(cx,cy);
+  const shift = amt * 3.0 * (w/900) + amt*1.2;
+  for(let y=0;y<h;y++){
+    for(let x=0;x<w;x++){
+      const o=(y*w+x)*4;
+      const dx=(x-cx)/maxd, dy=(y-cy)/maxd;
+      const sx = Math.round(dx*shift), sy=Math.round(dy*shift);
+      // red pulled out, blue pulled in
+      const rx=clamp(x+sx,0,w-1), ry=clamp(y+sy,0,h-1);
+      const bx=clamp(x-sx,0,w-1), by=clamp(y-sy,0,h-1);
+      out[o]   = src[(ry*w+rx)*4];
+      out[o+1] = src[o+1];
+      out[o+2] = src[(by*w+bx)*4+2];
+      out[o+3] = src[o+3];
+    }
+  }
+  img.data.set(out);
+  return img;
+}
+
+/* ---------- grain ---------- */
+function grainPass(d, amt){
+  const a = amt*48;
+  for(let i=0;i<d.length;i+=4){
+    const n = (Math.random()-0.5)*a;
+    const c = (Math.random()-0.5)*a*0.25;
+    d[i]   = clamp(d[i]  +n+c,0,255);
+    d[i+1] = clamp(d[i+1]+n   ,0,255);
+    d[i+2] = clamp(d[i+2]+n-c ,0,255);
+  }
+}
+
+/* ---------- halftone / print screen (CMYK-ish) ---------- */
+function halftonePass(ctx, w, h, amt){
+  const cell = 5;
+  const img = ctx.getImageData(0,0,w,h).data;
+  const screens = [
+    {ang: 15*Math.PI/180, col:[10,140,200],  ch:2, inv:true},  // cyan from R-ish
+    {ang: 75*Math.PI/180, col:[230,40,150],   ch:1, inv:true},  // magenta from G
+    {ang: 0,              col:[250,210,40],    ch:2, inv:false}, // yellow from B
+  ];
+  ctx.save();
+  ctx.globalCompositeOperation = "multiply";
+  ctx.globalAlpha = clamp(0.35 + amt*0.5, 0, 0.9);
+  screens.forEach(sc=>{
+    ctx.fillStyle = `rgb(${sc.col[0]},${sc.col[1]},${sc.col[2]})`;
+    const ca=Math.cos(sc.ang), sa=Math.sin(sc.ang);
+    for(let gy=-h; gy<h*2; gy+=cell){
+      for(let gx=-w; gx<w*2; gx+=cell){
+        // rotated grid position
+        const x = gx*ca - gy*sa;
+        const y = gx*sa + gy*ca;
+        if(x<0||x>=w||y<0||y>=h) continue;
+        const idx=((y|0)*w+(x|0))*4;
+        let cov = img[idx+sc.ch]/255;            // channel coverage
+        if(sc.inv) cov = 1-cov;
+        const r = (cell*0.62)*Math.sqrt(clamp(cov,0,1));
+        if(r<0.4) continue;
+        ctx.beginPath();ctx.arc(x,y,r,0,6.283);ctx.fill();
+      }
+    }
+  });
+  ctx.restore();
+}
+
+/* ---------- authentic JPEG compression (the secret weapon) ---------- */
+function jpegPass(canvas, s){
+  return new Promise(res=>{
+    const q = Math.max(0.05, 0.62 - s*0.55);
+    const scale = 1 - s*0.45;                       // chunkier blocks at high strength
+    const sw = Math.max(8, Math.round(canvas.width*scale));
+    const sh = Math.max(8, Math.round(canvas.height*scale));
+    const tmp = document.createElement("canvas"); tmp.width=sw; tmp.height=sh;
+    const tctx = tmp.getContext("2d"); tctx.imageSmoothingEnabled=true;
+    tctx.drawImage(canvas,0,0,sw,sh);
+    const url = tmp.toDataURL("image/jpeg", q);
+    const im = new Image();
+    im.onload = ()=>{
+      const cx=canvas.getContext("2d");
+      cx.imageSmoothingEnabled=true;
+      cx.clearRect(0,0,canvas.width,canvas.height);
+      cx.drawImage(im,0,0,canvas.width,canvas.height);
+      res();
+    };
+    im.onerror = ()=>res();
+    im.src = url;
+  });
+}
+
+/* ---------- full pipeline ---------- */
+async function render(srcCanvas, p, quick){
+  const w=srcCanvas.width, h=srcCanvas.height;
+  const c=document.createElement("canvas"); c.width=w; c.height=h;
+  const ctx=c.getContext("2d");
+  ctx.drawImage(srcCanvas,0,0);
+
+  // 1. color grade
+  let img = ctx.getImageData(0,0,w,h);
+  gradePass(img.data,w,h,p);
+  // 2. chromatic aberration (lens)
+  if(p.chroma>0) img = chromaPass(img,w,h,p.chroma/100);
+  ctx.putImageData(img,0,0);
+
+  // 3. halation bloom (optical) — warm glow off the highlights
+  if(p.bloom>0){
+    const blurPx = (p.bloom/100) * Math.max(2, w*0.012);
+    const b=document.createElement("canvas"); b.width=w; b.height=h;
+    const bx=b.getContext("2d");
+    bx.filter = `blur(${blurPx}px) brightness(1.18)`;
+    bx.drawImage(c,0,0);
+    bx.filter="none";
+    bx.globalCompositeOperation="multiply";
+    bx.fillStyle="rgb(255,176,118)";          // tint the glow warm
+    bx.fillRect(0,0,w,h);
+    ctx.globalCompositeOperation="lighter";
+    ctx.globalAlpha=(p.bloom/100)*0.55;
+    ctx.drawImage(b,0,0);
+    ctx.globalAlpha=1; ctx.globalCompositeOperation="source-over";
+  }
+
+  // 4. vignette (optical)
+  if(p.vignette>0){
+    const g=ctx.createRadialGradient(w/2,h/2,Math.min(w,h)*0.28, w/2,h/2,Math.hypot(w,h)*0.62);
+    g.addColorStop(0,"rgba(28,12,6,0)");
+    g.addColorStop(1,`rgba(20,8,4,${(p.vignette/100)*0.72})`);
+    ctx.globalCompositeOperation="multiply";
+    ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+    ctx.globalCompositeOperation="source-over";
+  }
+
+  // 5. grain (film/scan)
+  if(p.grain>0){
+    const d2=ctx.getImageData(0,0,w,h);
+    grainPass(d2.data, p.grain/100);
+    ctx.putImageData(d2,0,0);
+  }
+
+  if(!quick){
+    // 6. print screen
+    if(p.halftone>0) halftonePass(ctx,w,h,p.halftone/100);
+    // 7. real JPEG re-encode
+    if(p.jpeg>0) await jpegPass(c, p.jpeg/100);
+  }
+  return c;
+}
+
+/* ---------- drive preview ---------- */
+function scheduleQuick(){
+  if(!baseWork || rafPending) return;
+  rafPending=true;
+  requestAnimationFrame(async ()=>{
+    rafPending=false;
+    const out = await render(baseWork, params, true);
+    drawTo($("#procCanvas"), out);
+  });
+}
+async function fullRender(){
+  if(!baseWork) return;
+  const my = ++renderToken;
+  $("#developing").classList.add("on");
+  const out = await render(baseWork, params, false);
+  if(my!==renderToken) return;          // a newer render started
+  drawTo($("#procCanvas"), out);
+  $("#developing").classList.remove("on");
+}
+function drawTo(canvas, src){
+  canvas.width=src.width; canvas.height=src.height;
+  canvas.getContext("2d").drawImage(src,0,0);
+}
+
+/* ---------- load an image ---------- */
+function fitSize(w,h,max){
+  const s=Math.min(1, max/Math.max(w,h));
+  return [Math.round(w*s), Math.round(h*s)];
+}
+function showStage(){
+  $("#drop").style.display="none";
+  $("#stack").style.display="block";
+  $("#downloadBtn").disabled=false;
+}
+function loadImage(src){
+  const img=new Image();
+  img.onload=()=>{
+    sourceImg=img;
+    const [w,h]=fitSize(img.naturalWidth,img.naturalHeight,MAX_PREVIEW);
+    baseWork=document.createElement("canvas"); baseWork.width=w; baseWork.height=h;
+    baseWork.getContext("2d").drawImage(img,0,0,w,h);
+    drawTo($("#baseCanvas"), baseWork);
+    // match stage aspect to the image
+    $("#stage").style.aspectRatio = (img.naturalWidth/img.naturalHeight).toFixed(4);
+    $("#dims").textContent = `${img.naturalWidth}×${img.naturalHeight}px`;
+    showStage();
+    setSplit(0.5);
+    fullRender();
+  };
+  img.onerror=()=>alert("Couldn't load that image. Try a JPG, PNG, or WEBP.");
+  img.src=src;
+}
+function handleFile(file){
+  if(!file || !file.type.startsWith("image/")) return;
+  const fr=new FileReader();
+  fr.onload=e=>loadImage(e.target.result);
+  fr.readAsDataURL(file);
+}
+
+/* ---------- procedural sample (works offline) ---------- */
+function makeSample(){
+  const w=1280,h=820,c=document.createElement("canvas");c.width=w;c.height=h;
+  const x=c.getContext("2d");
+  // sky
+  const sky=x.createLinearGradient(0,0,0,h*0.72);
+  sky.addColorStop(0,"#2a1a5e");sky.addColorStop(.45,"#b8336a");
+  sky.addColorStop(.78,"#ff6b53");sky.addColorStop(1,"#ffd27a");
+  x.fillStyle=sky;x.fillRect(0,0,w,h);
+  // sun
+  const sun=x.createRadialGradient(w*0.5,h*0.55,10,w*0.5,h*0.55,260);
+  sun.addColorStop(0,"#fff3c4");sun.addColorStop(.5,"#ffd06a");sun.addColorStop(1,"rgba(255,160,90,0)");
+  x.fillStyle=sun;x.beginPath();x.arc(w*0.5,h*0.55,260,0,6.283);x.fill();
+  // sun bands
+  x.fillStyle="#2a1a5e";
+  for(let i=0;i<6;i++){x.globalAlpha=.35;x.fillRect(w*0.28,h*0.52+i*22,w*0.44,9);}
+  x.globalAlpha=1;
+  // water
+  const sea=x.createLinearGradient(0,h*0.72,0,h);
+  sea.addColorStop(0,"#3a2b7a");sea.addColorStop(1,"#0e1a4a");
+  x.fillStyle=sea;x.fillRect(0,h*0.72,w,h*0.28);
+  x.fillStyle="rgba(255,200,120,.5)";
+  for(let i=0;i<10;i++){const yy=h*0.74+i*9;x.fillRect(w*0.5-(60+i*14),yy,(120+i*28),3);}
+  // skyline
+  x.fillStyle="#15103a";
+  const blds=[[40,260],[120,180],[210,320],[300,150],[360,240],[470,120],[540,300],[650,200],
+              [900,230],[980,160],[1050,300],[1150,180],[1210,260]];
+  blds.forEach(([bx,bh])=>{x.fillRect(bx,h*0.72-bh,64,bh);
+    x.fillStyle="rgba(255,210,120,.7)";
+    for(let wy=h*0.72-bh+12;wy<h*0.72-10;wy+=22)for(let wx=bx+8;wx<bx+56;wx+=18)
+      if(Math.random()>.45)x.fillRect(wx,wy,7,10);
+    x.fillStyle="#15103a";});
+  // palm silhouette
+  x.fillStyle="#0c0a26";
+  x.fillRect(w-150,h*0.42,12,h*0.30);
+  for(let a=-2;a<=2;a++){x.save();x.translate(w-144,h*0.42);x.rotate(a*0.5);
+    x.fillRect(0,-4,150,8);x.restore();}
+  return c;
+}
+
+/* ---------- before/after compare ---------- */
+function setSplit(frac){
+  frac=clamp(frac,0,1);
+  const pct=(frac*100).toFixed(1)+"%";
+  $("#stack").style.setProperty("--split",pct);
+}
+(function compareDrag(){
+  const stack=$("#stack"); let dragging=false;
+  const upd=(clientX)=>{
+    const r=stack.getBoundingClientRect();
+    setSplit((clientX-r.left)/r.width);
+  };
+  const start=e=>{dragging=true;upd((e.touches?e.touches[0]:e).clientX);e.preventDefault();};
+  const move =e=>{if(dragging)upd((e.touches?e.touches[0]:e).clientX);};
+  const end  =()=>dragging=false;
+  $("#handle").addEventListener("pointerdown",start);
+  stack.addEventListener("pointerdown",e=>{if(e.target.id!=="handle")start(e);});
+  window.addEventListener("pointermove",move);
+  window.addEventListener("pointerup",end);
+})();
+
+/* ---------- download ---------- */
+async function download(){
+  if(!sourceImg) return;
+  $("#developing").classList.add("on");
+  const [w,h]=fitSize(sourceImg.naturalWidth,sourceImg.naturalHeight,MAX_EXPORT);
+  const hi=document.createElement("canvas");hi.width=w;hi.height=h;
+  hi.getContext("2d").drawImage(sourceImg,0,0,w,h);
+  const out=await render(hi, params, false);
+  out.toBlob(blob=>{
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download=`sunset-lab-${Date.now()}.jpg`;
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    $("#developing").classList.remove("on");
+  },"image/jpeg",0.92);
+}
+
+/* ---------- wiring ---------- */
+function init(){
+  buildPresets();
+  buildControls();
+  params={...PRESETS["FOR YOU"].v};
+  syncSliders();
+  setActivePreset("FOR YOU");
+
+  const drop=$("#drop");
+  drop.addEventListener("click",()=>$("#fileInput").click());
+  $("#uploadBtn").addEventListener("click",()=>$("#fileInput").click());
+  $("#fileInput").addEventListener("change",e=>handleFile(e.target.files[0]));
+  $("#sampleBtn").addEventListener("click",()=>{
+    const s=makeSample();
+    loadImage(s.toDataURL("image/jpeg",0.95));
+  });
+  $("#downloadBtn").addEventListener("click",download);
+  $("#randomBtn").addEventListener("click",()=>{
+    SLIDERS.forEach(s=>{
+      const r=Math.random();
+      let v=Math.round(s.min+(s.max-s.min)*r);
+      if(s.id==="halftone") v=Math.random()<0.7?0:Math.round(Math.random()*40);
+      params[s.id]=v;
+    });
+    syncSliders();clearActivePreset();fullRender();
+  });
+  $("#resetBtn").addEventListener("click",()=>{
+    params={...PRESETS["FOR YOU"].v};
+    syncSliders();setActivePreset("FOR YOU");fullRender();
+  });
+
+  // drag & drop over whole stage
+  ["dragenter","dragover"].forEach(ev=>$("#stage").addEventListener(ev,e=>{
+    e.preventDefault();drop.classList.add("hot");}));
+  ["dragleave","drop"].forEach(ev=>$("#stage").addEventListener(ev,e=>{
+    e.preventDefault();drop.classList.remove("hot");}));
+  $("#stage").addEventListener("drop",e=>{
+    const f=e.dataTransfer.files[0]; if(f) handleFile(f);});
+
+  // paste
+  window.addEventListener("paste",e=>{
+    const it=[...(e.clipboardData?.items||[])].find(i=>i.type.startsWith("image/"));
+    if(it) handleFile(it.getAsFile());
+  });
+}
+init();
+</script>
+</body>
+</html>
