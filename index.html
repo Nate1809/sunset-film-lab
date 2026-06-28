@@ -712,22 +712,44 @@ function setSplit(frac){
   window.addEventListener("pointerup",end);
 })();
 
-/* ---------- download ---------- */
-async function download(){
+/* ---------- export: native share on mobile, download on desktop ---------- */
+function canShareFiles(file){
+  try{ return !!(navigator.canShare && navigator.canShare({files:[file]})); }
+  catch(_){ return false; }
+}
+async function exportImage(){
   if(!sourceImg) return;
+  const btn=$("#downloadBtn");
+  btn.disabled=true;
   $("#developing").classList.add("on");
+  // render at export resolution
   const [w,h]=fitSize(sourceImg.naturalWidth,sourceImg.naturalHeight,MAX_EXPORT);
   const hi=document.createElement("canvas");hi.width=w;hi.height=h;
   hi.getContext("2d").drawImage(sourceImg,0,0,w,h);
   const out=await render(hi, params, false);
-  out.toBlob(blob=>{
-    const a=document.createElement("a");
-    a.href=URL.createObjectURL(blob);
-    a.download=`sunset-lab-${Date.now()}.jpg`;
-    a.click();
-    setTimeout(()=>URL.revokeObjectURL(a.href),2000);
-    $("#developing").classList.remove("on");
-  },"image/jpeg",0.92);
+  const blob=await new Promise(r=>out.toBlob(r,"image/jpeg",0.92));
+  $("#developing").classList.remove("on");
+  btn.disabled=false;
+  if(!blob){ alert("Couldn't develop the image — try again."); return; }
+  const file=new File([blob], `sunset-lab-${Date.now()}.jpg`, {type:"image/jpeg"});
+
+  // mobile / share-capable: open the native share sheet (Save Image, AirDrop, Messages…)
+  if(canShareFiles(file)){
+    try{
+      await navigator.share({files:[file], title:"Sunset Film Lab"});
+      return;                                   // shared successfully
+    }catch(err){
+      if(err && err.name==="AbortError") return;   // user dismissed the sheet — done
+      // any other error (e.g. unsupported on this gesture) → fall through to download
+    }
+  }
+
+  // fallback: direct download
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download=file.name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),3000);
 }
 
 /* ---------- wiring ---------- */
@@ -746,7 +768,10 @@ function init(){
     const s=makeSample();
     loadImage(s.toDataURL("image/jpeg",0.95));
   });
-  $("#downloadBtn").addEventListener("click",download);
+  // label the export button for what the device will actually do
+  const probe=new File([new Uint8Array([255,216,255,217])],"p.jpg",{type:"image/jpeg"});
+  if(canShareFiles(probe)) $("#downloadBtn").innerHTML="⬆ Develop &amp; share";
+  $("#downloadBtn").addEventListener("click",exportImage);
   $("#randomBtn").addEventListener("click",()=>{
     SLIDERS.forEach(s=>{
       const r=Math.random();
