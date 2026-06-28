@@ -282,6 +282,7 @@ const SLIDERS = [
   {id:"split",      lab:"Split tone",  jp:"影", min:0,   max:100, def:42},
   {id:"bloom",      lab:"Halation",    jp:"光", min:0,   max:100, def:34},
   {id:"chroma",     lab:"Chroma drift",jp:"滲", min:0,   max:100, def:18},
+  {id:"pixchroma",  lab:"Pixel chroma",jp:"画", min:0,   max:100, def:0},
   {id:"grain",      lab:"Grain",       jp:"粒", min:0,   max:100, def:40},
   {id:"jpeg",       lab:"Compression", jp:"圧", min:0,   max:100, def:52},
   {id:"halftone",   lab:"Print screen",jp:"網", min:0,   max:100, def:0},
@@ -289,12 +290,14 @@ const SLIDERS = [
 ];
 
 /* ---- presets (Tatsuro / city-pop nods) ---- */
+const DEFAULT_PRESET = "TATSURO '82";
 const PRESETS = {
-  "FOR YOU":      {jp:"the hero look", v:{warmth:64,tint:8,saturation:18,fade:46,split:42,bloom:34,chroma:18,grain:40,jpeg:52,halftone:0,vignette:30}},
-  "RIDE ON TIME": {jp:"punchy sunset", v:{warmth:72,tint:6,saturation:42,fade:30,split:52,bloom:48,chroma:14,grain:30,jpeg:40,halftone:0,vignette:26}},
-  "SPARKLE":      {jp:"clean & glossy",v:{warmth:58,tint:2,saturation:24,fade:22,split:30,bloom:62,chroma:8, grain:20,jpeg:26,halftone:0,vignette:18}},
-  "PLASTIC LOVE": {jp:"magazine scan", v:{warmth:60,tint:14,saturation:10,fade:56,split:36,bloom:22,chroma:24,grain:60,jpeg:82,halftone:34,vignette:34}},
-  "MIDNIGHT":     {jp:"vhs dusk",      v:{warmth:40,tint:-6,saturation:16,fade:50,split:62,bloom:40,chroma:36,grain:48,jpeg:52,halftone:0,vignette:42}},
+  "TATSURO '82":  {jp:"the photo",     v:{warmth:70,tint:14,saturation:14,fade:52,split:34,bloom:42,chroma:8, pixchroma:48,grain:50,jpeg:60,halftone:0, vignette:26}},
+  "FOR YOU":      {jp:"the hero look", v:{warmth:64,tint:8, saturation:18,fade:46,split:42,bloom:34,chroma:18,pixchroma:0, grain:40,jpeg:52,halftone:0, vignette:30}},
+  "RIDE ON TIME": {jp:"punchy sunset", v:{warmth:72,tint:6, saturation:42,fade:30,split:52,bloom:48,chroma:14,pixchroma:0, grain:30,jpeg:40,halftone:0, vignette:26}},
+  "SPARKLE":      {jp:"clean & glossy",v:{warmth:58,tint:2, saturation:24,fade:22,split:30,bloom:62,chroma:8, pixchroma:0, grain:20,jpeg:26,halftone:0, vignette:18}},
+  "PLASTIC LOVE": {jp:"magazine scan", v:{warmth:60,tint:14,saturation:10,fade:56,split:36,bloom:22,chroma:14,pixchroma:40,grain:60,jpeg:82,halftone:34,vignette:34}},
+  "MIDNIGHT":     {jp:"vhs dusk",      v:{warmth:40,tint:-6,saturation:16,fade:50,split:62,bloom:40,chroma:30,pixchroma:24,grain:48,jpeg:52,halftone:0, vignette:42}},
 };
 
 let params = {};
@@ -419,6 +422,49 @@ function chromaPass(img, w, h, amt){
   return img;
 }
 
+/* ---------- pixel chroma: chroma subsampling (the blocky digital-scan fringe) ----------
+   Brightness stays full-res; color (Cb/Cr) is averaged into low-res blocks and
+   nudged sideways. That's the "pixely" color smear of a heavily-compressed scan —
+   a codec artifact, not smooth lens aberration. */
+function chromaSubsample(data, w, h, amt){
+  const block = Math.max(2, Math.round((2 + amt*9) * (w/1000)));  // scales with res
+  const shift = Math.round(amt * block * 0.6);                    // sideways fringe
+  const N = w*h;
+  const Y  = new Float32Array(N);
+  const Cb = new Float32Array(N);
+  const Cr = new Float32Array(N);
+  for(let i=0,p=0;i<N;i++,p+=4){
+    const r=data[p], g=data[p+1], b=data[p+2];
+    Y[i]  =  0.299*r + 0.587*g + 0.114*b;
+    Cb[i] = -0.168736*r - 0.331264*g + 0.5*b;
+    Cr[i] =  0.5*r - 0.418688*g - 0.081312*b;
+  }
+  // average chroma within each block (the subsampling step)
+  for(let by=0; by<h; by+=block){
+    const ey=Math.min(by+block,h);
+    for(let bx=0; bx<w; bx+=block){
+      const ex=Math.min(bx+block,w);
+      let sCb=0,sCr=0,cnt=0;
+      for(let y=by;y<ey;y++){ const row=y*w; for(let x=bx;x<ex;x++){const i=row+x;sCb+=Cb[i];sCr+=Cr[i];cnt++;} }
+      const aCb=sCb/cnt, aCr=sCr/cnt;
+      for(let y=by;y<ey;y++){ const row=y*w; for(let x=bx;x<ex;x++){const i=row+x;Cb[i]=aCb;Cr[i]=aCr;} }
+    }
+  }
+  // recombine full-res luma with shifted blocky chroma -> colored fringing on edges
+  for(let y=0;y<h;y++){
+    const row=y*w;
+    for(let x=0;x<w;x++){
+      const i=row+x, p=i*4;
+      const xb = clamp(x-shift,0,w-1);
+      const xr = clamp(x+shift,0,w-1);
+      const yv=Y[i], cb=Cb[row+xb], cr=Cr[row+xr];
+      data[p]   = clamp(yv + 1.402*cr, 0,255);
+      data[p+1] = clamp(yv - 0.344136*cb - 0.714136*cr, 0,255);
+      data[p+2] = clamp(yv + 1.772*cb, 0,255);
+    }
+  }
+}
+
 /* ---------- grain ---------- */
 function grainPass(d, amt){
   const a = amt*48;
@@ -529,10 +575,11 @@ async function render(srcCanvas, p, quick){
     ctx.globalCompositeOperation="source-over";
   }
 
-  // 5. grain (film/scan)
-  if(p.grain>0){
+  // 5. grain (film/scan) + pixel chroma (digital subsampling)
+  if(p.grain>0 || p.pixchroma>0){
     const d2=ctx.getImageData(0,0,w,h);
-    grainPass(d2.data, p.grain/100);
+    if(p.grain>0) grainPass(d2.data, p.grain/100);
+    if(p.pixchroma>0) chromaSubsample(d2.data, w, h, p.pixchroma/100);
     ctx.putImageData(d2,0,0);
   }
 
@@ -687,9 +734,9 @@ async function download(){
 function init(){
   buildPresets();
   buildControls();
-  params={...PRESETS["FOR YOU"].v};
+  params={...PRESETS[DEFAULT_PRESET].v};
   syncSliders();
-  setActivePreset("FOR YOU");
+  setActivePreset(DEFAULT_PRESET);
 
   const drop=$("#drop");
   drop.addEventListener("click",()=>$("#fileInput").click());
@@ -710,8 +757,8 @@ function init(){
     syncSliders();clearActivePreset();fullRender();
   });
   $("#resetBtn").addEventListener("click",()=>{
-    params={...PRESETS["FOR YOU"].v};
-    syncSliders();setActivePreset("FOR YOU");fullRender();
+    params={...PRESETS[DEFAULT_PRESET].v};
+    syncSliders();setActivePreset(DEFAULT_PRESET);fullRender();
   });
 
   // drag & drop over whole stage
