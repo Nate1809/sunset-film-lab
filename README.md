@@ -18,13 +18,13 @@ That vintage flavor isn't one filter — it's a *stack* of effects layered in th
 
 ## Features
 
-- 🖼️ Drag & drop, click to browse, or paste from clipboard
-- 🎞️ 5 presets: `FOR YOU`, `RIDE ON TIME`, `SPARKLE`, `PLASTIC LOVE`, `MIDNIGHT`
-- 🎛️ 11 sliders for fine control over every layer
-- 🔀 Before/after compare slider
+- 📱 **Mobile-first, app-style UI** — the image stays pinned in view while you edit (iOS Photos / Instagram style)
+- 🎞️ **Filters carousel** with live per-photo thumbnails: `TATSURO '82`, `FOR YOU`, `RIDE ON TIME`, `SPARKLE`, `PLASTIC LOVE`, `MIDNIGHT`
+- 🎛️ **Adjust** tab — 12 tools (warmth, tint, saturation, fade, split tone, halation, chroma drift, pixel chroma, grain, compression, print screen, vignette) with a single focused slider
+- 🔀 **Press & hold** the photo to compare before/after
+- 🖼️ Drag & drop, tap to browse, or paste from clipboard
 - 🎲 Surprise (randomize) and ↺ reset
-- ⬇️ Develop & save as JPEG
-- 📱 Responsive
+- ⬆️ **Develop & share** — native share sheet on mobile (Save to Photos, AirDrop…), download on desktop
 
 ## Run locally
 

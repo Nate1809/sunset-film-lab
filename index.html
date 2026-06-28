@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
 <title>夕景現像所 · SUNSET FILM LAB</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,9 +33,11 @@
     min-height:100vh;
     position:relative;
     -webkit-font-smoothing:antialiased;
+    -webkit-tap-highlight-color:transparent;
     overflow-x:hidden;
+    display:flex;justify-content:center;
   }
-  /* fixed atmospheric backdrop — covers the viewport at any scroll position */
+  /* fixed atmospheric backdrop */
   body::before{
     content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
     background:
@@ -50,217 +52,196 @@
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
-  /* ===== masthead ===== */
-  header{
-    padding:30px clamp(18px,4vw,54px) 22px;
-    border-bottom:1px solid var(--line);
-    position:relative;
+  /* ===== app shell (mobile-first) ===== */
+  .app{
+    width:100%;max-width:480px;height:100dvh;display:flex;flex-direction:column;
+    background:linear-gradient(180deg,var(--bg2),var(--bg));overflow:hidden;position:relative;
   }
-  .mast-row{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap}
-  .brand{display:flex;flex-direction:column;gap:6px}
-  .kana{font-family:"Zen Kaku Gothic New",sans-serif;font-weight:700;color:var(--gold);
-    letter-spacing:.22em;font-size:13px;opacity:.85}
-  h1{
-    font-family:"Zen Dots",sans-serif;font-weight:400;
-    font-size:clamp(26px,5vw,46px);line-height:.95;letter-spacing:.01em;
-    background:linear-gradient(95deg,var(--gold),var(--coral) 45%,var(--magenta));
-    -webkit-background-clip:text;background-clip:text;color:transparent;
-    text-shadow:0 0 30px rgba(255,107,83,.18);
+  @media(min-width:540px){
+    body{align-items:center;padding:20px}
+    .app{height:min(calc(100dvh - 40px),940px);border:1px solid var(--panel-edge);
+      border-radius:32px;box-shadow:0 40px 100px -30px rgba(0,0,0,.85),0 0 0 1px rgba(0,0,0,.35)}
   }
-  .tag{color:var(--ink-dim);font-size:12px;letter-spacing:.16em;text-transform:uppercase;margin-top:2px}
-  .badge{
-    font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--bg);
-    background:linear-gradient(95deg,var(--gold),var(--coral));
-    padding:7px 12px;border-radius:2px;font-weight:600;white-space:nowrap;
-    box-shadow:0 0 0 1px rgba(255,179,71,.4), 0 8px 22px -10px rgba(255,107,83,.7);
-  }
-  .sunbar{height:5px;margin-top:18px;border-radius:3px;
-    background:linear-gradient(90deg,var(--magenta),var(--coral) 35%,var(--gold) 70%,var(--teal));
-    box-shadow:0 0 22px -2px rgba(255,107,83,.5)}
 
-  /* ===== layout ===== */
-  main{
-    display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,.9fr);
-    gap:clamp(16px,2.4vw,30px);
-    padding:clamp(16px,3vw,34px) clamp(18px,4vw,54px) 60px;
-    align-items:start;
-  }
-  @media(max-width:880px){main{grid-template-columns:1fr}}
+  /* ===== top bar ===== */
+  .topbar{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+    gap:12px;padding:14px 16px 12px;border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:10px;min-width:0}
+  .logo{font-family:"Zen Kaku Gothic New",sans-serif;font-weight:700;font-size:17px;color:#1a120b;
+    background:linear-gradient(135deg,var(--gold),var(--coral));width:34px;height:34px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px -6px rgba(255,107,83,.7)}
+  .brandtxt{font-family:"Zen Dots",sans-serif;font-size:13px;letter-spacing:.01em;color:var(--ink);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .brandtxt b{font-weight:400;background:linear-gradient(95deg,var(--gold),var(--magenta));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .topactions{display:flex;gap:8px;flex:0 0 auto}
+  .ic{font-family:inherit;cursor:pointer;border:1px solid var(--panel-edge);background:var(--panel);
+    color:var(--ink);width:40px;height:40px;border-radius:12px;font-size:18px;line-height:1;
+    display:flex;align-items:center;justify-content:center;transition:.15s}
+  .ic:hover{border-color:var(--gold);color:var(--gold)}
+  .ic:active{transform:scale(.93)}
+  .ic[disabled]{opacity:.35;pointer-events:none}
+  .ic.share{background:linear-gradient(135deg,var(--gold),var(--coral));color:#1a120b;border:none;
+    box-shadow:0 8px 20px -8px rgba(255,107,83,.8);font-weight:700}
+  .ic.sm{width:34px;height:34px;font-size:15px;border-radius:10px}
 
-  /* ===== stage ===== */
-  .stage-wrap{display:flex;flex-direction:column;gap:14px;min-width:0}
-  .stage{
-    position:relative;border-radius:8px;overflow:hidden;
-    border:1px solid var(--panel-edge);
-    background:
-      repeating-linear-gradient(45deg, #0c0907 0 12px, #100b08 12px 24px);
-    box-shadow:var(--shadow);
-    aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;
-  }
-  /* empty / dropzone state */
-  .drop{
-    position:absolute;inset:14px;border:2px dashed var(--line);border-radius:6px;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
-    text-align:center;color:var(--ink-dim);transition:.2s;padding:24px;cursor:pointer;
-  }
-  .drop.hot{border-color:var(--gold);background:rgba(255,179,71,.06);color:var(--ink)}
-  .drop .big{font-family:"Zen Dots",sans-serif;font-size:clamp(15px,2vw,20px);color:var(--paper);letter-spacing:.02em}
-  .drop .sub{font-size:12px;letter-spacing:.05em;max-width:46ch;line-height:1.7}
-  .drop .ico{font-size:34px;filter:grayscale(.2)}
-  .drop .pill{margin-top:4px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
-    border:1px solid var(--line);padding:6px 12px;border-radius:30px;color:var(--ink-dim)}
+  /* ===== viewer (image always visible) ===== */
+  .viewer{flex:1 1 auto;position:relative;min-height:0;overflow:hidden;
+    background:radial-gradient(125% 125% at 50% 28%, #16100c, #0b0806);touch-action:none}
+  .canvas-stack{position:absolute;inset:0;display:none}
+  .canvas-stack canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+  #procCanvas{transition:opacity .12s}
+  .canvas-stack.comparing #procCanvas{opacity:0}
+  .cmpbadge{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);
+    font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--paper);
+    background:rgba(10,7,5,.55);backdrop-filter:blur(4px);padding:6px 12px;border-radius:30px;
+    pointer-events:none;display:flex;align-items:center;gap:7px;user-select:none}
+  .cmpbadge::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gold)}
+  .canvas-stack.comparing .cmpbadge{color:var(--gold)}
 
-  /* canvas compare */
-  .canvas-stack{position:relative;width:100%;height:100%;display:none}
-  .canvas-stack canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
-    image-rendering:auto}
-  #procCanvas{clip-path:inset(0 0 0 var(--split,50%));}
-  .divider{position:absolute;top:0;bottom:0;left:var(--split,50%);width:2px;
-    background:linear-gradient(var(--gold),var(--coral));transform:translateX(-1px);
-    box-shadow:0 0 12px rgba(255,179,71,.6);pointer-events:none}
-  .handle{position:absolute;top:50%;left:var(--split,50%);transform:translate(-50%,-50%);
-    width:38px;height:38px;border-radius:50%;background:var(--paper);color:var(--bg);
-    display:flex;align-items:center;justify-content:center;font-size:14px;cursor:ew-resize;
-    box-shadow:0 4px 14px rgba(0,0,0,.5), 0 0 0 4px rgba(236,224,207,.18);font-weight:600;
-    z-index:5;user-select:none}
-  .stage-lbl{position:absolute;top:10px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;
-    background:rgba(10,7,5,.6);backdrop-filter:blur(3px);padding:5px 9px;border-radius:3px;color:var(--paper);z-index:4}
-  .stage-lbl.l{left:10px}.stage-lbl.r{right:10px;color:var(--gold)}
+  .empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:13px;text-align:center;padding:30px;transition:.2s}
+  .empty.hot{background:rgba(255,179,71,.07)}
+  .empty .ico{font-size:48px}
+  .empty .big{font-family:"Zen Dots",sans-serif;font-size:19px;color:var(--paper)}
+  .empty .sub{font-size:12px;color:var(--ink-dim);line-height:1.7;max-width:32ch}
+  .emptybtns{display:flex;gap:10px;margin-top:6px;flex-wrap:wrap;justify-content:center}
+
   .developing{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
-    background:rgba(12,8,5,.55);z-index:6;color:var(--gold);font-size:11px;letter-spacing:.25em;text-transform:uppercase}
+    background:rgba(12,8,5,.5);z-index:6;color:var(--gold);font-size:10px;letter-spacing:.28em;
+    text-transform:uppercase;backdrop-filter:blur(2px)}
   .developing.on{display:flex}
   .developing::before{content:"";width:14px;height:14px;margin-right:10px;border-radius:50%;
-    border:2px solid rgba(255,179,71,.35);border-top-color:var(--gold);animation:spin .7s linear infinite}
+    border:2px solid rgba(255,179,71,.3);border-top-color:var(--gold);animation:spin .7s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
 
-  .stage-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .btn{
-    font-family:inherit;font-size:12px;letter-spacing:.08em;cursor:pointer;
+  /* ===== buttons ===== */
+  .btn{font-family:inherit;font-size:12px;letter-spacing:.06em;cursor:pointer;
     border:1px solid var(--panel-edge);background:var(--panel);color:var(--ink);
-    padding:10px 14px;border-radius:5px;transition:.15s;display:inline-flex;gap:8px;align-items:center}
-  .btn:hover{border-color:var(--gold);color:var(--gold);transform:translateY(-1px)}
-  .btn:active{transform:translateY(0)}
+    padding:11px 18px;border-radius:30px;transition:.15s}
+  .btn:active{transform:scale(.96)}
   .btn.ghost{background:transparent}
-  .btn.primary{background:linear-gradient(95deg,var(--gold),var(--coral));color:#1a120b;
-    border:none;font-weight:600;letter-spacing:.1em;box-shadow:0 10px 24px -12px rgba(255,107,83,.8)}
-  .btn.primary:hover{filter:brightness(1.06);color:#1a120b;transform:translateY(-1px)}
-  .btn[disabled]{opacity:.4;cursor:not-allowed;transform:none}
-  .spacer{flex:1}
-  .hint{font-size:11px;color:var(--ink-dim);letter-spacing:.04em}
+  .btn.primary{background:linear-gradient(95deg,var(--gold),var(--coral));color:#1a120b;border:none;
+    font-weight:700;box-shadow:0 10px 24px -12px rgba(255,107,83,.8)}
 
-  /* ===== panel ===== */
-  .panel{
-    background:linear-gradient(180deg,var(--panel),#1a130d);
-    border:1px solid var(--panel-edge);border-radius:8px;box-shadow:var(--shadow);
-    padding:18px;display:flex;flex-direction:column;gap:18px;position:sticky;top:18px}
-  @media(max-width:880px){.panel{position:static}}
-  .sec-h{display:flex;align-items:center;gap:10px;font-size:11px;letter-spacing:.2em;
-    text-transform:uppercase;color:var(--paper-dim)}
-  .sec-h::after{content:"";flex:1;height:1px;background:var(--line)}
-  .sec-h b{font-family:"Zen Kaku Gothic New",sans-serif;color:var(--gold);font-weight:700;letter-spacing:.1em}
+  /* ===== dock ===== */
+  .dock{flex:0 0 auto;background:linear-gradient(180deg,#1c150e,var(--panel));
+    border-top:1px solid var(--panel-edge);display:none;flex-direction:column;
+    padding-bottom:env(safe-area-inset-bottom)}
+  .dock-tabs{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px 7px}
+  .seg{display:flex;background:#120d08;border:1px solid var(--line);border-radius:30px;padding:3px}
+  .segbtn{font-family:inherit;cursor:pointer;border:none;background:transparent;color:var(--ink-dim);
+    font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:8px 18px;border-radius:30px;transition:.15s}
+  .segbtn.active{background:linear-gradient(95deg,var(--gold),var(--coral));color:#1a120b;font-weight:700}
+  .dock-tools{display:flex;gap:7px}
 
-  .presets{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .preset{
-    font-family:inherit;cursor:pointer;text-align:left;
-    border:1px solid var(--panel-edge);background:#1c150e;color:var(--ink);
-    padding:9px 11px;border-radius:5px;transition:.15s;line-height:1.3}
-  .preset .pn{font-size:11.5px;letter-spacing:.04em;font-weight:500}
-  .preset .pj{font-size:9px;color:var(--ink-dim);letter-spacing:.18em;text-transform:uppercase;margin-top:3px}
-  .preset:hover{border-color:var(--coral);transform:translateY(-1px)}
-  .preset.active{border-color:var(--gold);background:linear-gradient(180deg,rgba(255,179,71,.16),rgba(255,107,83,.06));
-    box-shadow:inset 0 0 0 1px rgba(255,179,71,.3)}
-  .preset.active .pn{color:var(--gold)}
+  .pane{padding:2px 0 14px}
+  .pane[hidden]{display:none}
 
-  .controls{display:flex;flex-direction:column;gap:13px}
-  .ctrl label{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;
-    letter-spacing:.06em;margin-bottom:5px}
-  .ctrl .lab{color:var(--ink)}
-  .ctrl .lab i{font-style:normal;color:var(--gold);font-family:"Zen Kaku Gothic New",sans-serif;margin-right:6px}
-  .ctrl .val{color:var(--ink-dim);font-variant-numeric:tabular-nums;font-size:11px}
-  input[type=range]{
-    -webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:3px;
-    background:linear-gradient(90deg,var(--coral),var(--gold));cursor:pointer;outline:none}
-  input[type=range]::-webkit-slider-thumb{
-    -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
-    background:var(--paper);border:2px solid var(--bg);
-    box-shadow:0 0 0 1px var(--gold),0 2px 6px rgba(0,0,0,.5);cursor:ew-resize;transition:.1s}
-  input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15)}
-  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;
-    background:var(--paper);border:2px solid var(--gold);cursor:ew-resize}
-  input[type=range]::-moz-range-track{height:4px;border-radius:3px;background:linear-gradient(90deg,var(--coral),var(--gold))}
+  /* filters filmstrip (instagram style) */
+  .filmstrip{display:flex;gap:13px;overflow-x:auto;padding:10px 16px 4px;-webkit-overflow-scrolling:touch}
+  .filmstrip::-webkit-scrollbar{height:0}
+  .thumb{flex:0 0 auto;background:none;border:none;cursor:pointer;padding:0;
+    display:flex;flex-direction:column;align-items:center;gap:7px}
+  .thumbimg{width:64px;height:64px;border-radius:14px;background:#0c0907 center/cover no-repeat;
+    border:2px solid transparent;transition:.15s;box-shadow:0 4px 10px -4px rgba(0,0,0,.6)}
+  .thumb.active .thumbimg{border-color:var(--gold);
+    box-shadow:0 0 0 2px rgba(255,179,71,.3),0 6px 16px -6px rgba(255,107,83,.6)}
+  .thumblab{font-size:9px;letter-spacing:.06em;color:var(--ink-dim);text-transform:uppercase;white-space:nowrap;transition:.15s}
+  .thumb.active .thumblab{color:var(--gold)}
 
-  .panel-actions{display:flex;gap:8px}
-  .panel-actions .btn{flex:1;justify-content:center}
+  /* adjust tool row (ios photos style) */
+  .toolrow{display:flex;gap:9px;overflow-x:auto;padding:8px 16px 11px;-webkit-overflow-scrolling:touch}
+  .toolrow::-webkit-scrollbar{height:0}
+  .tool{position:relative;flex:0 0 auto;background:#150f09;border:1px solid var(--line);cursor:pointer;
+    border-radius:14px;padding:9px 12px 12px;min-width:64px;display:flex;flex-direction:column;
+    align-items:center;gap:5px;transition:.15s;overflow:hidden}
+  .tool.active{border-color:var(--gold);background:linear-gradient(180deg,rgba(255,179,71,.14),rgba(255,107,83,.05))}
+  .toolic{font-family:"Zen Kaku Gothic New",sans-serif;font-size:16px;color:var(--paper-dim);transition:.15s}
+  .tool.active .toolic{color:var(--gold)}
+  .toollab{font-size:8.5px;letter-spacing:.05em;color:var(--ink-dim);text-transform:uppercase;white-space:nowrap}
+  .tfill{position:absolute;left:0;bottom:0;height:2px;width:0;
+    background:linear-gradient(90deg,var(--coral),var(--gold));transition:width .1s}
 
-  footer{padding:22px clamp(18px,4vw,54px) 40px;color:var(--ink-dim);font-size:11px;
-    letter-spacing:.05em;line-height:1.8;border-top:1px solid var(--line);max-width:80ch}
-  footer b{color:var(--paper-dim);font-weight:500}
-  footer .k{color:var(--gold)}
+  /* single slider tray */
+  .slidertray{padding:6px 18px 16px}
+  .tray-label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;
+    font-size:11px;letter-spacing:.08em}
+  #trayName{color:var(--ink);text-transform:uppercase}
+  .trayval{color:var(--gold);font-variant-numeric:tabular-nums;font-size:15px;font-weight:600}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:4px;
+    background:linear-gradient(90deg,var(--coral),var(--gold));cursor:pointer;outline:none;touch-action:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:27px;height:27px;border-radius:50%;
+    background:var(--paper);border:3px solid var(--bg);
+    box-shadow:0 0 0 1px var(--gold),0 3px 10px rgba(0,0,0,.5);cursor:grab}
+  input[type=range]::-webkit-slider-thumb:active{transform:scale(1.08)}
+  input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--paper);
+    border:3px solid var(--gold);cursor:grab}
+  input[type=range]::-moz-range-track{height:5px;border-radius:4px;background:linear-gradient(90deg,var(--coral),var(--gold))}
+
   input[type=file]{display:none}
   ::selection{background:var(--coral);color:#1a120b}
 </style>
 </head>
 <body>
-<header>
-  <div class="mast-row">
+<div class="app">
+  <!-- top bar -->
+  <header class="topbar">
     <div class="brand">
-      <span class="kana">夕景現像所</span>
-      <h1>SUNSET FILM LAB</h1>
-      <span class="tag">city-pop · magazine-scan developer · circa 1982</span>
+      <span class="logo">夕</span>
+      <span class="brandtxt">SUNSET <b>FILM LAB</b></span>
     </div>
-    <span class="badge">drop a photo →</span>
+    <div class="topactions">
+      <button class="ic" id="uploadBtn" title="Open photo" aria-label="Open photo">＋</button>
+      <button class="ic share" id="downloadBtn" title="Save / share" aria-label="Save or share" disabled>↓</button>
+    </div>
+  </header>
+
+  <!-- viewer -->
+  <div class="viewer" id="viewer">
+    <div class="empty" id="empty">
+      <div class="ico">🌇</div>
+      <div class="big">Develop a photo</div>
+      <div class="sub">Tap to choose, drag &amp; drop, or paste. Runs entirely on your device — nothing is uploaded.</div>
+      <div class="emptybtns">
+        <button class="btn primary" id="chooseBtn">Choose photo</button>
+        <button class="btn ghost" id="sampleBtn">Try a sample</button>
+      </div>
+    </div>
+    <div class="canvas-stack" id="stack">
+      <canvas id="baseCanvas"></canvas>
+      <canvas id="procCanvas"></canvas>
+      <div class="cmpbadge" id="cmpbadge">hold to compare</div>
+      <div class="developing" id="developing">developing</div>
+    </div>
   </div>
-  <div class="sunbar"></div>
-</header>
 
-<main>
-  <!-- LEFT: stage -->
-  <section class="stage-wrap">
-    <div class="stage" id="stage">
-      <div class="drop" id="drop">
-        <div class="ico">🌇</div>
-        <div class="big">Drop a photo to develop</div>
-        <div class="sub">Drag &amp; drop, click to browse, or paste from clipboard. Everything runs locally in your browser — nothing is uploaded.</div>
-        <div class="pill">JPG · PNG · WEBP · HEIC*</div>
+  <!-- dock -->
+  <div class="dock" id="dock">
+    <div class="dock-tabs">
+      <div class="seg">
+        <button class="segbtn active" data-tab="filters">Filters</button>
+        <button class="segbtn" data-tab="adjust">Adjust</button>
       </div>
-      <div class="canvas-stack" id="stack">
-        <canvas id="baseCanvas"></canvas>
-        <canvas id="procCanvas"></canvas>
-        <span class="stage-lbl l">原 · before</span>
-        <span class="stage-lbl r">現像 · after</span>
-        <div class="divider" id="divider"></div>
-        <div class="handle" id="handle">⇆</div>
-        <div class="developing" id="developing">developing</div>
+      <div class="dock-tools">
+        <button class="ic sm" id="randomBtn" title="Surprise" aria-label="Randomize">🎲</button>
+        <button class="ic sm" id="resetBtn" title="Reset" aria-label="Reset">↺</button>
       </div>
     </div>
-    <div class="stage-actions">
-      <button class="btn" id="uploadBtn">📁 Upload</button>
-      <button class="btn ghost" id="sampleBtn">✨ Try a sample</button>
-      <span class="spacer"></span>
-      <span class="hint" id="dims"></span>
+
+    <div class="pane" id="filtersPane">
+      <div class="filmstrip" id="filmstrip"></div>
     </div>
-  </section>
 
-  <!-- RIGHT: controls -->
-  <aside class="panel">
-    <div class="sec-h"><b>現像液</b> presets</div>
-    <div class="presets" id="presets"></div>
-
-    <div class="sec-h"><b>調整</b> develop</div>
-    <div class="controls" id="controls"></div>
-
-    <div class="sec-h"><b>仕上げ</b> finish</div>
-    <div class="panel-actions">
-      <button class="btn" id="randomBtn">🎲 Surprise</button>
-      <button class="btn" id="resetBtn">↺ Reset</button>
+    <div class="pane" id="adjustPane" hidden>
+      <div class="toolrow" id="toolrow"></div>
+      <div class="slidertray">
+        <div class="tray-label"><span id="trayName">Warmth</span><span id="trayVal" class="trayval">0</span></div>
+        <input type="range" id="traySlider" min="0" max="100" step="1">
+      </div>
     </div>
-    <button class="btn primary" id="downloadBtn" disabled>⬇ Develop &amp; save</button>
-  </aside>
-</main>
-
-<footer>
-  <b>What this is →</b> the look is a <b>stack</b>, not a single filter: warm tungsten white-balance, <span class="k">faded film</span> (lifted blacks + low contrast), split-tone (amber highlights / teal shadows), <span class="k">halation</span> bloom on bright spots, film grain, lens chroma fringing, and — the real tell — <span class="k">authentic JPEG/print compression</span> (re-encoded at low quality so you get genuine 8×8 blocking + color bleed). Tune each layer, drag the slider to compare, save your version.
-</footer>
+  </div>
+</div>
 
 <input type="file" id="fileInput" accept="image/*">
 
@@ -305,60 +286,85 @@ let sourceImg = null;          // HTMLImageElement of original
 let baseWork = null;           // canvas: original at preview size
 let rafPending = false;
 let renderToken = 0;           // cancels stale async renders
+let currentAdjust = SLIDERS[0].id;
+let activeFilter = DEFAULT_PRESET;
 
-/* ---------- build UI ---------- */
-function buildControls(){
-  const c = $("#controls");
+/* ---------- formatting ---------- */
+function fmt(s,v){ return s.min<0 ? (v>0?"+":"")+v : ""+v; }
+function pid(name){ return name.replace(/[^a-z0-9]/gi,"_"); }
+
+/* ---------- build: filters (Instagram-style strip) ---------- */
+function buildFilmstrip(){
+  const fs=$("#filmstrip"); fs.innerHTML="";
+  Object.keys(PRESETS).forEach(name=>{
+    const b=document.createElement("button");
+    b.className="thumb"; b.dataset.name=name;
+    b.innerHTML=`<span class="thumbimg" id="th_${pid(name)}"></span><span class="thumblab">${name}</span>`;
+    b.addEventListener("click",()=>selectPreset(name));
+    fs.appendChild(b);
+  });
+}
+async function genThumbs(){
+  if(!sourceImg) return;
+  const S=132;
+  const sq=document.createElement("canvas"); sq.width=S; sq.height=S;
+  const x=sq.getContext("2d");
+  const iw=sourceImg.naturalWidth, ih=sourceImg.naturalHeight;
+  const s=Math.max(S/iw,S/ih), dw=iw*s, dh=ih*s;
+  x.drawImage(sourceImg,(S-dw)/2,(S-dh)/2,dw,dh);
+  for(const [name,obj] of Object.entries(PRESETS)){
+    const out=await render(sq,obj.v,false);
+    const el=document.getElementById("th_"+pid(name));
+    if(el) el.style.backgroundImage=`url(${out.toDataURL("image/jpeg",0.82)})`;
+  }
+}
+function selectPreset(name){
+  params={...PRESETS[name].v};
+  activeFilter=name; setActiveFilter(name);
+  syncTray(); updateToolFills();
+  fullRender();
+}
+function setActiveFilter(name){
+  document.querySelectorAll(".thumb").forEach(t=>t.classList.toggle("active",t.dataset.name===name));
+}
+function clearActiveFilter(){ activeFilter=null; document.querySelectorAll(".thumb").forEach(t=>t.classList.remove("active")); }
+
+/* ---------- build: adjust (iOS-style tool row + single slider) ---------- */
+function buildToolrow(){
+  const tr=$("#toolrow"); tr.innerHTML="";
   SLIDERS.forEach(s=>{
-    const wrap = document.createElement("div");
-    wrap.className = "ctrl";
-    wrap.innerHTML = `
-      <label>
-        <span class="lab"><i>${s.jp}</i>${s.lab}</span>
-        <span class="val" id="val_${s.id}"></span>
-      </label>
-      <input type="range" id="rng_${s.id}" min="${s.min}" max="${s.max}" step="1">`;
-    c.appendChild(wrap);
-    const rng = wrap.querySelector("input");
-    rng.addEventListener("input", ()=>{
-      params[s.id] = +rng.value;
-      $("#val_"+s.id).textContent = fmt(s, +rng.value);
-      clearActivePreset();
-      scheduleQuick();
-    });
-    rng.addEventListener("change", ()=> fullRender());
+    const b=document.createElement("button");
+    b.className="tool"; b.dataset.id=s.id;
+    b.innerHTML=`<span class="toolic">${s.jp}</span><span class="toollab">${s.lab}</span><span class="tfill" id="tf_${s.id}"></span>`;
+    b.addEventListener("click",()=>selectAdjust(s.id));
+    tr.appendChild(b);
   });
 }
-function fmt(s,v){
-  if(s.min<0) return (v>0?"+":"")+v;
-  return v+"";
+function selectAdjust(id){
+  currentAdjust=id;
+  document.querySelectorAll(".tool").forEach(t=>t.classList.toggle("active",t.dataset.id===id));
+  syncTray();
+  const el=document.querySelector('.tool[data-id="'+id+'"]');
+  if(el) el.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"});
 }
-function syncSliders(){
+function syncTray(){
+  const s=SLIDERS.find(x=>x.id===currentAdjust);
+  const t=$("#traySlider");
+  t.min=s.min; t.max=s.max; t.step=1; t.value=params[s.id];
+  $("#trayName").textContent=s.lab;
+  $("#trayVal").textContent=fmt(s,params[s.id]);
+}
+function updateToolFills(){
   SLIDERS.forEach(s=>{
-    $("#rng_"+s.id).value = params[s.id];
-    $("#val_"+s.id).textContent = fmt(s, params[s.id]);
+    const el=document.getElementById("tf_"+s.id);
+    if(el) el.style.width=(((params[s.id]-s.min)/(s.max-s.min))*100).toFixed(1)+"%";
   });
 }
-function buildPresets(){
-  const p = $("#presets");
-  Object.entries(PRESETS).forEach(([name,obj])=>{
-    const b = document.createElement("button");
-    b.className="preset";b.dataset.name=name;
-    b.innerHTML = `<div class="pn">${name}</div><div class="pj">${obj.jp}</div>`;
-    b.addEventListener("click", ()=>{
-      params = {...obj.v};
-      syncSliders();
-      setActivePreset(name);
-      fullRender();
-    });
-    p.appendChild(b);
-  });
+function setTab(tab){
+  document.querySelectorAll(".segbtn").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
+  $("#filtersPane").hidden = tab!=="filters";
+  $("#adjustPane").hidden  = tab!=="adjust";
 }
-function setActivePreset(name){
-  document.querySelectorAll(".preset").forEach(el=>
-    el.classList.toggle("active", el.dataset.name===name));
-}
-function clearActivePreset(){ document.querySelectorAll(".preset").forEach(el=>el.classList.remove("active")); }
 
 /* ---------- math helpers ---------- */
 const clamp = (v,a,b)=> v<a?a:(v>b?b:v);
@@ -622,8 +628,9 @@ function fitSize(w,h,max){
   return [Math.round(w*s), Math.round(h*s)];
 }
 function showStage(){
-  $("#drop").style.display="none";
+  $("#empty").style.display="none";
   $("#stack").style.display="block";
+  $("#dock").style.display="flex";
   $("#downloadBtn").disabled=false;
 }
 function loadImage(src){
@@ -634,12 +641,11 @@ function loadImage(src){
     baseWork=document.createElement("canvas"); baseWork.width=w; baseWork.height=h;
     baseWork.getContext("2d").drawImage(img,0,0,w,h);
     drawTo($("#baseCanvas"), baseWork);
-    // match stage aspect to the image
-    $("#stage").style.aspectRatio = (img.naturalWidth/img.naturalHeight).toFixed(4);
-    $("#dims").textContent = `${img.naturalWidth}×${img.naturalHeight}px`;
     showStage();
-    setSplit(0.5);
     fullRender();
+    genThumbs();
+    if(activeFilter) setActiveFilter(activeFilter);
+    syncTray(); updateToolFills();
   };
   img.onerror=()=>alert("Couldn't load that image. Try a JPG, PNG, or WEBP.");
   img.src=src;
@@ -691,25 +697,16 @@ function makeSample(){
   return c;
 }
 
-/* ---------- before/after compare ---------- */
-function setSplit(frac){
-  frac=clamp(frac,0,1);
-  const pct=(frac*100).toFixed(1)+"%";
-  $("#stack").style.setProperty("--split",pct);
-}
-(function compareDrag(){
-  const stack=$("#stack"); let dragging=false;
-  const upd=(clientX)=>{
-    const r=stack.getBoundingClientRect();
-    setSplit((clientX-r.left)/r.width);
-  };
-  const start=e=>{dragging=true;upd((e.touches?e.touches[0]:e).clientX);e.preventDefault();};
-  const move =e=>{if(dragging)upd((e.touches?e.touches[0]:e).clientX);};
-  const end  =()=>dragging=false;
-  $("#handle").addEventListener("pointerdown",start);
-  stack.addEventListener("pointerdown",e=>{if(e.target.id!=="handle")start(e);});
-  window.addEventListener("pointermove",move);
-  window.addEventListener("pointerup",end);
+/* ---------- before/after: press &amp; hold to compare ---------- */
+(function compareHold(){
+  const stack=$("#stack"), badge=$("#cmpbadge");
+  const on=e=>{ if(stack.style.display==="none") return;
+    stack.classList.add("comparing"); badge.textContent="original"; e.preventDefault(); };
+  const off=()=>{ stack.classList.remove("comparing"); badge.textContent="hold to compare"; };
+  stack.addEventListener("pointerdown",on);
+  window.addEventListener("pointerup",off);
+  window.addEventListener("pointercancel",off);
+  stack.addEventListener("pointerleave",off);
 })();
 
 /* ---------- export: native share on mobile, download on desktop ---------- */
@@ -740,7 +737,7 @@ async function exportImage(){
       return;                                   // shared successfully
     }catch(err){
       if(err && err.name==="AbortError") return;   // user dismissed the sheet — done
-      // any other error (e.g. unsupported on this gesture) → fall through to download
+      // any other error → fall through to download
     }
   }
 
@@ -754,45 +751,61 @@ async function exportImage(){
 
 /* ---------- wiring ---------- */
 function init(){
-  buildPresets();
-  buildControls();
+  buildFilmstrip();
+  buildToolrow();
   params={...PRESETS[DEFAULT_PRESET].v};
-  syncSliders();
-  setActivePreset(DEFAULT_PRESET);
+  selectAdjust(SLIDERS[0].id);
+  updateToolFills();
+  setTab("filters");
 
-  const drop=$("#drop");
-  drop.addEventListener("click",()=>$("#fileInput").click());
-  $("#uploadBtn").addEventListener("click",()=>$("#fileInput").click());
+  // file open
+  const openFile=()=>$("#fileInput").click();
+  $("#uploadBtn").addEventListener("click",openFile);
+  $("#chooseBtn").addEventListener("click",openFile);
   $("#fileInput").addEventListener("change",e=>handleFile(e.target.files[0]));
-  $("#sampleBtn").addEventListener("click",()=>{
-    const s=makeSample();
-    loadImage(s.toDataURL("image/jpeg",0.95));
-  });
-  // label the export button for what the device will actually do
+  $("#sampleBtn").addEventListener("click",()=>loadImage(makeSample().toDataURL("image/jpeg",0.95)));
+
+  // export — relabel intent for the device
   const probe=new File([new Uint8Array([255,216,255,217])],"p.jpg",{type:"image/jpeg"});
-  if(canShareFiles(probe)) $("#downloadBtn").innerHTML="⬆ Develop &amp; share";
+  if(canShareFiles(probe)){ const b=$("#downloadBtn"); b.textContent="↑"; b.title="Develop & share"; }
   $("#downloadBtn").addEventListener("click",exportImage);
+
+  // tabs
+  document.querySelectorAll(".segbtn").forEach(b=>b.addEventListener("click",()=>setTab(b.dataset.tab)));
+
+  // single slider tray
+  const tray=$("#traySlider");
+  tray.addEventListener("input",()=>{
+    const s=SLIDERS.find(x=>x.id===currentAdjust);
+    params[currentAdjust]=+tray.value;
+    $("#trayVal").textContent=fmt(s,+tray.value);
+    const tf=document.getElementById("tf_"+currentAdjust);
+    if(tf) tf.style.width=(((+tray.value-s.min)/(s.max-s.min))*100).toFixed(1)+"%";
+    clearActiveFilter();
+    scheduleQuick();
+  });
+  tray.addEventListener("change",fullRender);
+
+  // surprise / reset
   $("#randomBtn").addEventListener("click",()=>{
     SLIDERS.forEach(s=>{
-      const r=Math.random();
-      let v=Math.round(s.min+(s.max-s.min)*r);
+      let v=Math.round(s.min+(s.max-s.min)*Math.random());
       if(s.id==="halftone") v=Math.random()<0.7?0:Math.round(Math.random()*40);
       params[s.id]=v;
     });
-    syncSliders();clearActivePreset();fullRender();
+    clearActiveFilter(); syncTray(); updateToolFills(); fullRender();
   });
   $("#resetBtn").addEventListener("click",()=>{
     params={...PRESETS[DEFAULT_PRESET].v};
-    syncSliders();setActivePreset(DEFAULT_PRESET);fullRender();
+    activeFilter=DEFAULT_PRESET; setActiveFilter(DEFAULT_PRESET);
+    syncTray(); updateToolFills(); fullRender();
   });
 
-  // drag & drop over whole stage
-  ["dragenter","dragover"].forEach(ev=>$("#stage").addEventListener(ev,e=>{
-    e.preventDefault();drop.classList.add("hot");}));
-  ["dragleave","drop"].forEach(ev=>$("#stage").addEventListener(ev,e=>{
-    e.preventDefault();drop.classList.remove("hot");}));
-  $("#stage").addEventListener("drop",e=>{
-    const f=e.dataTransfer.files[0]; if(f) handleFile(f);});
+  // drag & drop over the viewer
+  const viewer=$("#viewer"), empty=$("#empty");
+  ["dragenter","dragover"].forEach(ev=>viewer.addEventListener(ev,e=>{e.preventDefault();empty.classList.add("hot");}));
+  ["dragleave","drop"].forEach(ev=>viewer.addEventListener(ev,e=>{e.preventDefault();empty.classList.remove("hot");}));
+  viewer.addEventListener("drop",e=>{const f=e.dataTransfer.files[0]; if(f) handleFile(f);});
 
   // paste
   window.addEventListener("paste",e=>{
