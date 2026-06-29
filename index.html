@@ -70,7 +70,7 @@
   .logo{font-family:"Zen Kaku Gothic New",sans-serif;font-weight:700;font-size:17px;color:#1a120b;
     background:linear-gradient(135deg,var(--gold),var(--coral));width:34px;height:34px;border-radius:10px;
     display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px -6px rgba(255,107,83,.7)}
-  .brandtxt{font-family:"Zen Dots",sans-serif;font-size:13px;letter-spacing:.01em;color:var(--ink);
+  .brandtxt{font-family:"Zen Dots",sans-serif;font-size:12px;letter-spacing:0;color:var(--ink);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .brandtxt b{font-weight:400;background:linear-gradient(95deg,var(--gold),var(--magenta));
     -webkit-background-clip:text;background-clip:text;color:transparent}
@@ -179,6 +179,34 @@
     border:3px solid var(--gold);cursor:grab}
   input[type=range]::-moz-range-track{height:5px;border-radius:4px;background:linear-gradient(90deg,var(--coral),var(--gold))}
 
+  /* ===== info sheet ===== */
+  .sheet-scrim{position:absolute;inset:0;z-index:50;display:flex;align-items:flex-end;
+    background:rgba(8,5,3,.55);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .25s}
+  .sheet-scrim.show{opacity:1;pointer-events:auto}
+  .sheet{width:100%;max-height:88%;overflow-y:auto;background:linear-gradient(180deg,var(--panel),#1a130d);
+    border-top:1px solid var(--panel-edge);border-radius:22px 22px 0 0;
+    padding:10px 22px calc(24px + env(safe-area-inset-bottom));
+    transform:translateY(100%);transition:transform .32s cubic-bezier(.22,1,.36,1);
+    box-shadow:0 -24px 60px -24px rgba(0,0,0,.85)}
+  .sheet-scrim.show .sheet{transform:translateY(0)}
+  .sheet-grip{width:38px;height:4px;border-radius:3px;background:var(--line);margin:4px auto 14px}
+  .sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .sheet-head .kana{font-family:"Zen Kaku Gothic New",sans-serif;font-weight:700;color:var(--gold);
+    letter-spacing:.16em;font-size:11px;text-transform:uppercase}
+  .sheet-title{font-family:"Zen Dots",sans-serif;font-weight:400;font-size:19px;margin-bottom:13px;
+    background:linear-gradient(95deg,var(--gold),var(--coral) 60%,var(--magenta));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .sheet-p{font-size:12.5px;line-height:1.75;color:var(--ink-dim);margin-bottom:16px}
+  .sheet-p b{color:var(--paper)}
+  .sheet-list{list-style:none;display:flex;flex-direction:column;gap:11px;margin-bottom:16px}
+  .sheet-list li{display:flex;gap:13px;align-items:flex-start;font-size:12px;line-height:1.6;color:var(--ink-dim)}
+  .sheet-list i{font-style:normal;font-family:"Zen Kaku Gothic New",sans-serif;font-size:15px;color:#1a120b;
+    background:linear-gradient(135deg,var(--gold),var(--coral));min-width:30px;height:30px;border-radius:9px;
+    display:flex;align-items:center;justify-content:center;flex:0 0 auto;box-shadow:0 4px 12px -6px rgba(255,107,83,.7)}
+  .sheet-list b{color:var(--paper);font-weight:600}
+  .sheet-foot{font-size:12px;line-height:1.75;color:var(--ink-dim);border-top:1px solid var(--line);padding-top:14px}
+  .sheet-foot b{color:var(--gold)}
+
   input[type=file]{display:none}
   ::selection{background:var(--coral);color:#1a120b}
 </style>
@@ -192,6 +220,7 @@
       <span class="brandtxt">SUNSET <b>FILM LAB</b></span>
     </div>
     <div class="topactions">
+      <button class="ic" id="infoBtn" title="About this look" aria-label="About this look">ⓘ</button>
       <button class="ic" id="uploadBtn" title="Open photo" aria-label="Open photo">＋</button>
       <button class="ic share" id="downloadBtn" title="Save / share" aria-label="Save or share" disabled>↓</button>
     </div>
@@ -239,6 +268,29 @@
         <div class="tray-label"><span id="trayName">Warmth</span><span id="trayVal" class="trayval">0</span></div>
         <input type="range" id="traySlider" min="0" max="100" step="1">
       </div>
+    </div>
+  </div>
+
+  <!-- info sheet -->
+  <div class="sheet-scrim" id="infoScrim">
+    <div class="sheet" role="dialog" aria-label="About this look">
+      <div class="sheet-grip"></div>
+      <div class="sheet-head">
+        <span class="kana">現像について · about</span>
+        <button class="ic sm" id="infoClose" aria-label="Close">✕</button>
+      </div>
+      <h2 class="sheet-title">What is this look?</h2>
+      <p class="sheet-p">It's a <b>stack</b>, not one filter — the same marks a photo picks up travelling from an '80s camera, into a magazine, and onto a screen:</p>
+      <ul class="sheet-list">
+        <li><i>温</i><span><b>Warm white-balance</b> — the amber cast of tungsten light + aged film</span></li>
+        <li><i>褪</i><span><b>Faded film</b> — lifted blacks &amp; low contrast (those milky shadows)</span></li>
+        <li><i>影</i><span><b>Split tone</b> — golden highlights, cool teal shadows</span></li>
+        <li><i>光</i><span><b>Halation</b> — warm bloom glowing off the bright spots</span></li>
+        <li><i>粒</i><span><b>Grain</b> — fine film &amp; scan noise</span></li>
+        <li><i>画</i><span><b>Pixel chroma</b> — blocky color smear from chroma subsampling (the real tell)</span></li>
+        <li><i>圧</i><span><b>Compression</b> — actually re-encoded as a low-quality JPEG, for genuine 8×8 blocking &amp; color bleed</span></li>
+      </ul>
+      <p class="sheet-foot">Tune each layer in <b>Adjust</b>, or tap a <b>Filter</b>. Everything runs on your device — nothing is uploaded. Made for the city-pop greats. 🌇</p>
     </div>
   </div>
 </div>
@@ -772,6 +824,13 @@ function init(){
 
   // tabs
   document.querySelectorAll(".segbtn").forEach(b=>b.addEventListener("click",()=>setTab(b.dataset.tab)));
+
+  // info sheet
+  const infoScrim=$("#infoScrim");
+  $("#infoBtn").addEventListener("click",()=>infoScrim.classList.add("show"));
+  $("#infoClose").addEventListener("click",()=>infoScrim.classList.remove("show"));
+  infoScrim.addEventListener("click",e=>{ if(e.target===infoScrim) infoScrim.classList.remove("show"); });
+  window.addEventListener("keydown",e=>{ if(e.key==="Escape") infoScrim.classList.remove("show"); });
 
   // single slider tray
   const tray=$("#traySlider");
